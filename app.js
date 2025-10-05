@@ -40,15 +40,35 @@ function renderChannels(channels) {
         div.onclick = () => {
             document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
             div.classList.add('active');
-            player.src = ch.url;
-            player.play();
+            playChannel(ch.url);
         };
         if (idx === 0) {
             div.classList.add('active');
-            player.src = ch.url;
+            playChannel(ch.url);
         }
         channelsDiv.appendChild(div);
     });
+}
+
+function playChannel(url) {
+    if (Hls.isSupported()) {
+        if (window.hls) {
+            window.hls.destroy();
+        }
+        window.hls = new Hls();
+        window.hls.loadSource(url);
+        window.hls.attachMedia(player);
+        window.hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal) {
+                window.hls.destroy();
+            }
+        });
+    } else if (player.canPlayType('application/vnd.apple.mpegurl')) {
+        player.src = url;
+    } else {
+        player.src = '';
+        alert('Browser Anda tidak mendukung pemutaran HLS.');
+    }
 }
 
 searchInput.addEventListener('input', function() {
